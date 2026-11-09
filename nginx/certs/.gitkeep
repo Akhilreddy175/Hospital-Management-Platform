@@ -1,0 +1,2 @@
+# Place generated certificates (server.crt, server.key) here.
+# Files in this directory with .crt and .key are ignored by git.

@@ -1,0 +1,86 @@
+services:
+  # ==========================================
+  # Database Service: PostgreSQL 16
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: hospital-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hospital_db}
+      POSTGRES_USER: ${DB_USER:-hospital_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hospital_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hospital-net
+    # Port 5432 is kept INTERNAL to hospital-net (Not exposed to the host/public)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hospital_user} -d ${DB_NAME:-hospital_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================
+  # Application Service: Spring Boot 3.4 API
+  # ==========================================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-algions}/hospital-appointment-service:${IMAGE_TAG:-latest}
+    container_name: hospital-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-hospital_db}
+      DB_USER: ${DB_USER:-hospital_user}
+      DB_PASSWORD: ${DB_PASSWORD:-hospital_pass}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+    networks:
+      - hospital-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health/readiness || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ==========================================
+  # Reverse Proxy: Nginx (TLS Termination)
+  # ==========================================
+  nginx:
+    image: nginx:alpine
+    container_name: hospital-nginx
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - hospital-net
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  hospital-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

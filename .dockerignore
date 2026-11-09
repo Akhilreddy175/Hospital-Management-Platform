@@ -1,0 +1,13 @@
+**/.git
+**/.gitignore
+**/target/
+**/node_modules
+**/.idea
+**/.vscode
+**/*.md
+**/docs/
+**/terraform/
+**/scripts/
+**/*.tfstate*
+**/.env*
+!**/.env.example
