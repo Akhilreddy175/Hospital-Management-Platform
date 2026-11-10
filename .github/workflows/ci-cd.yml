@@ -9,7 +9,6 @@ on:
 permissions:
   contents: read
   packages: write
-  security-events: write
 
 env:
   REGISTRY: ghcr.io
@@ -33,19 +32,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+          cache-dependency-path: backend/pom.xml
 
       - name: Run Maven Tests & Double-Booking Verification
         working-directory: ./backend
         run: mvn clean verify -B
 
       - name: Run Trivy Vulnerability Scanner on Repository Code
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0' # Non-blocking in CI log review
+          exit-code: '0'
 
   # ==========================================
   # Stage 2: Docker Build & Container Image Security Scan
@@ -71,7 +71,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: 'table'
@@ -115,54 +115,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  # ==========================================
-  # Stage 4: Continuous Deployment to AWS EC2 (Main Branch Only)
-  # ==========================================
-  deploy-to-ec2:
-    name: Deploy to AWS EC2 & Verify Health
-    needs: publish-image
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.EC2_HOST != ''
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy on AWS EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ vars.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-            cd /home/ubuntu/hospital-appointment-platform
-            
-            # Pull latest code and image
-            git pull origin main
-            
-            # Update IMAGE_TAG to current commit SHA
-            sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${{ github.sha }}/" .env || echo "IMAGE_TAG=${{ github.sha }}" >> .env
-            
-            # Pull latest container from GHCR
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-            docker compose pull api
-            
-            # Restart service with zero disruption
-            docker compose up -d --no-deps api
-            
-            # Wait for container startup
-            sleep 15
-
-      - name: Post-Deployment Health Check
-        run: |
-          echo "Running post-deployment health verification..."
-          for i in {1..10}; do
-            STATUS=$(curl -k -s -o /dev/null -w "%{http_code}" https://${{ vars.EC2_HOST }}/actuator/health || true)
-            if [ "$STATUS" = "200" ]; then
-              echo "Deployment Verified: Health endpoint returned 200 OK!"
-              exit 0
-            fi
-            echo "Waiting for health probe (Attempt $i/10)... Current status: $STATUS"
-            sleep 5
-          done
-          echo "Health check failed after 50 seconds!"
-          exit 1
