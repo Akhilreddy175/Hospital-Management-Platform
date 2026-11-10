@@ -39,7 +39,7 @@ jobs:
         run: mvn clean verify -B
 
       - name: Run Trivy Vulnerability Scanner on Repository Code
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -71,7 +71,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: 'table'
