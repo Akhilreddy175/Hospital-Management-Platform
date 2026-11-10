@@ -29,7 +29,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-algions}/hospital-appointment-service:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-akhilreddy175}/hospital-appointment-service:${IMAGE_TAG:-latest}
     container_name: hospital-api
     restart: unless-stopped
     depends_on:
