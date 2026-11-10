@@ -38,14 +38,11 @@ jobs:
         working-directory: ./backend
         run: mvn clean verify -B
 
-      - name: Run Trivy Vulnerability Scanner on Repository Code
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+      - name: Install Trivy Security Scanner
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run Trivy Vulnerability Scan (Filesystem)
+        run: trivy fs --severity CRITICAL,HIGH --exit-code 0 .
 
   # ==========================================
   # Stage 2: Docker Build & Container Image Security Scan
@@ -70,13 +67,11 @@ jobs:
           load: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Install Trivy Security Scanner
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+        run: trivy image --severity CRITICAL,HIGH --exit-code 0 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   # ==========================================
   # Stage 3: Publish to GHCR (Main Branch Only)
