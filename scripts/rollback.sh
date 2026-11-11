@@ -1,8 +1,4 @@
 #!/bin/bash
-# ========================================================
-# Service Rollback Script for Hospital Appointment Platform
-# Reverts the running API container to a previous stable image tag
-# ========================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,7 +25,6 @@ fi
 CURRENT_TAG=$(grep "^IMAGE_TAG=" "${ENV_FILE}" | cut -d '=' -f2 || echo "unknown")
 echo "Current Version: ${CURRENT_TAG}"
 
-# Update IMAGE_TAG in .env
 if grep -q "^IMAGE_TAG=" "${ENV_FILE}"; then
     sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${TARGET_TAG}/" "${ENV_FILE}"
 else

@@ -31,13 +31,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Actuator Health and Readiness Probes (Public for Docker / Nginx / ALB)
                 .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                // Authentication Endpoints
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                // Doctors Listing (Read-only public)
                 .requestMatchers(HttpMethod.GET, "/api/v1/doctors/**").permitAll()
-                // All other endpoints require valid JWT authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

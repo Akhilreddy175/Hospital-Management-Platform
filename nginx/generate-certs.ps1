@@ -1,4 +1,3 @@
-# Generate self-signed TLS certificates for local HTTPS testing (Windows PowerShell)
 $certsDir = Join-Path $PSScriptRoot "certs"
 
 if (-not (Test-Path $certsDir)) {
@@ -13,7 +12,6 @@ if ((Test-Path $crtPath) -and (Test-Path $keyPath)) {
     exit 0
 }
 
-# Auto-detect OpenSSL location (System PATH, Git for Windows, etc.)
 $opensslCmd = (Get-Command openssl -ErrorAction SilentlyContinue).Source
 
 if (-not $opensslCmd) {

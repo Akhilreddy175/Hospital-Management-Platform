@@ -1,14 +1,9 @@
 #!/bin/bash
-# ========================================================
-# Database Restore Script for Hospital Appointment Platform
-# Restores a PostgreSQL database dump into the active container
-# ========================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Source environment variables if .env exists
 if [ -f "${PROJECT_ROOT}/.env" ]; then
     export $(grep -v '^#' "${PROJECT_ROOT}/.env" | xargs)
 fi
@@ -35,7 +30,6 @@ echo "Target Container: ${CONTAINER_NAME}"
 echo "Database: ${DB_NAME}"
 echo "Source Backup: ${RESTORE_FILE}"
 
-# Confirm with administrator
 read -p "WARNING: This will overwrite data in '${DB_NAME}'. Continue? (y/N): " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -43,7 +37,6 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# Execute restore via psql inside the container
 cat "${RESTORE_FILE}" | docker exec -i "${CONTAINER_NAME}" psql -U "${DB_USER}" -d "${DB_NAME}"
 
 echo "SUCCESS: Database successfully restored from ${RESTORE_FILE}!"

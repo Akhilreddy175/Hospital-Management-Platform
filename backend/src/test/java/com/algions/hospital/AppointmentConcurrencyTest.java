@@ -74,10 +74,9 @@ public class AppointmentConcurrencyTest {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger conflictCount = new AtomicInteger(0);
 
-        // Task for Patient 1
         executor.submit(() -> {
             try {
-                startGate.await(); // Wait for simultaneous trigger
+                startGate.await();
                 AppointmentResponseDto res = appointmentService.bookAppointment(request, patient1.getEmail());
                 if (res != null) {
                     successCount.incrementAndGet();
@@ -85,16 +84,14 @@ public class AppointmentConcurrencyTest {
             } catch (SlotConflictException e) {
                 conflictCount.incrementAndGet();
             } catch (Exception e) {
-                // Any other exception
             } finally {
                 endGate.countDown();
             }
         });
 
-        // Task for Patient 2
         executor.submit(() -> {
             try {
-                startGate.await(); // Wait for simultaneous trigger
+                startGate.await();
                 AppointmentResponseDto res = appointmentService.bookAppointment(request, patient2.getEmail());
                 if (res != null) {
                     successCount.incrementAndGet();
@@ -102,13 +99,11 @@ public class AppointmentConcurrencyTest {
             } catch (SlotConflictException e) {
                 conflictCount.incrementAndGet();
             } catch (Exception e) {
-                // Any other exception
             } finally {
                 endGate.countDown();
             }
         });
 
-        // Release both threads simultaneously
         startGate.countDown();
         boolean completed = endGate.await(10, TimeUnit.SECONDS);
 
