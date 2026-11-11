@@ -2,7 +2,6 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- Console Appender for Standard Output -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
@@ -20,11 +19,9 @@
         </encoder>
     </appender>
 
-    <!-- Root Logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <!-- Project Specific Logger -->
     <logger name="com.algions.hospital" level="DEBUG"/>
 </configuration>

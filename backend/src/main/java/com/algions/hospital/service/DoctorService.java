@@ -36,8 +36,7 @@ public class DoctorService {
     }
 
     public List<OffsetDateTime> getAvailableSlots(Long doctorId, LocalDate date) {
-        // Generates standard hourly slots from 09:00 to 17:00 UTC
-        getDoctorById(doctorId); // Validate doctor existence
+        getDoctorById(doctorId);
         List<OffsetDateTime> slots = new ArrayList<>();
         for (int hour = 9; hour < 17; hour++) {
             slots.add(date.atTime(hour, 0).atOffset(ZoneOffset.UTC));

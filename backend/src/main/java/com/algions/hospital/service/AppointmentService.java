@@ -53,9 +53,8 @@ public class AppointmentService {
         }
 
         OffsetDateTime startTime = request.appointmentTime();
-        OffsetDateTime endTime = startTime.plusMinutes(45); // 45-minute consultation window
+        OffsetDateTime endTime = startTime.plusMinutes(45);
 
-        // Application-level conflict check
         if (appointmentRepository.existsActiveSlot(doctor.getId(), startTime)) {
             throw new SlotConflictException(
                 "Doctor " + doctor.getName() + " already has a booked appointment at " + startTime
@@ -75,7 +74,6 @@ public class AppointmentService {
             );
             return AppointmentResponseDto.fromEntity(saved);
         } catch (DataIntegrityViolationException e) {
-            // Catches database-level unique constraint uk_doctor_time_slot in concurrent conditions
             throw new SlotConflictException(
                 "Slot collision: The requested slot at " + startTime + " has just been booked by another request."
             );

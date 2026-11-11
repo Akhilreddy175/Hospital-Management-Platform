@@ -1,4 +1,3 @@
-# Environment & Secrets
 .env
 *.env
 *.pem
@@ -7,7 +6,6 @@
 id_rsa
 id_rsa.pub
 
-# Terraform
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
@@ -15,24 +13,22 @@ terraform/*.tfvars
 terraform/.terraform.lock.hcl
 terraform/crash.log
 
-# Java & Maven
 backend/target/
 backend/*.log
 .mvn/
 *.class
 
-# IDE & OS
 .idea/
 *.iml
 .vscode/
 .DS_Store
 Thumbs.db
 
-# Nginx Certificates (Local self-signed)
 nginx/certs/*.crt
 nginx/certs/*.key
 !nginx/certs/.gitkeep
 
-# Database Backups
 backups/*.sql
 backups/*.dump
+
+PROJECT_REFERENCE_REPORT.md

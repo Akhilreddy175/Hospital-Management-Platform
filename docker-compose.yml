@@ -1,7 +1,4 @@
 services:
-  # ==========================================
-  # Database Service: PostgreSQL 16
-  # ==========================================
   postgres:
     image: postgres:16-alpine
     container_name: hospital-postgres
@@ -14,7 +11,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - hospital-net
-    # Port 5432 is kept INTERNAL to hospital-net (Not exposed to the host/public)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hospital_user} -d ${DB_NAME:-hospital_db}"]
       interval: 10s
@@ -22,9 +18,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # ==========================================
-  # Application Service: Spring Boot 3.4 API
-  # ==========================================
   api:
     build:
       context: ./backend
@@ -53,9 +46,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # ==========================================
-  # Reverse Proxy: Nginx (TLS Termination)
-  # ==========================================
   nginx:
     image: nginx:alpine
     container_name: hospital-nginx
